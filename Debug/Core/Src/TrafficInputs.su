@@ -1,0 +1,9 @@
+../Core/Src/TrafficInputs.c:14:6:init_TrafficInputs	8	static
+../Core/Src/TrafficInputs.c:18:6:trafficInputs_Update	8	static
+../Core/Src/TrafficInputs.c:28:6:getLeftCar	4	static
+../Core/Src/TrafficInputs.c:32:6:getBottomCar	4	static
+../Core/Src/TrafficInputs.c:36:6:getRightCar	4	static
+../Core/Src/TrafficInputs.c:40:6:getTopCar	4	static
+../Core/Src/TrafficInputs.c:44:6:getLeftPed	4	static
+../Core/Src/TrafficInputs.c:48:6:getTopPed	4	static
+../Core/Src/TrafficInputs.c:52:14:getInputState	16	static

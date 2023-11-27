@@ -1,0 +1,8 @@
+../Core/Src/trafficLights.c:37:6:initTrafficLights	2
+../Core/Src/trafficLights.c:45:6:setLight	3
+../Core/Src/trafficLights.c:62:6:ControlLight	1
+../Core/Src/trafficLights.c:66:6:updateLights	2
+../Core/Src/trafficLights.c:73:6:toggleBlueLeft	1
+../Core/Src/trafficLights.c:78:6:toggleBlueTop	1
+../Core/Src/trafficLights.c:83:6:turnOffAllLights	1
+../Core/Src/trafficLights.c:91:6:turnOnAllLights	1

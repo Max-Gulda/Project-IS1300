@@ -1,0 +1,3 @@
+../Core/Src/hc595.c:12:6:hc595_init	16	static
+../Core/Src/hc595.c:28:6:hc595_update	16	static
+../Core/Src/hc595.c:33:6:HAL_SPI_TxCpltCallback	16	static

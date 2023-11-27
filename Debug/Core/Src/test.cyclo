@@ -1,0 +1,5 @@
+../Core/Src/test.c:13:6:Test_Program	1
+../Core/Src/test.c:22:6:testBlueLightToggle	1
+../Core/Src/test.c:29:6:testInputs	7
+../Core/Src/test.c:95:6:testLights	1
+../Core/Src/test.c:286:6:testHC595	1
