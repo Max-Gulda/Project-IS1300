@@ -11,6 +11,7 @@
 #include "main.h"
 #include "trafficLights.h"
 #include "TrafficInputs.h"
+#include "TrafficLogic.h"
 
 void Test_Program();
 

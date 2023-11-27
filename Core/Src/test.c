@@ -10,13 +10,37 @@
 
 static void testLights(void);
 
+
+//void activateTopBottom();
+//void activateLeftRight();
+//void activateTransition();
+
 void Test_Program(){
 	while(1){
+		//testLightLogic();
 		//testBlueLightToggle();
 		testInputs();
 		//testLights();
 		//testHC595();
 	}
+}
+
+void testLightLogic(){
+	activateTopBottom();
+	updateLights();
+	HAL_Delay(2000);
+
+	activateTransition();
+	updateLights();
+	HAL_Delay(2000);
+
+	activateLeftRight();
+	updateLights();
+	HAL_Delay(2000);
+
+	activateTransition();
+	updateLights();
+	HAL_Delay(2000);
 }
 
 void testBlueLightToggle(){

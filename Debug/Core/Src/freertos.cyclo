@@ -1,0 +1,13 @@
+../Core/Src/freertos.c:144:6:MX_FREERTOS_Init	1
+../Core/Src/freertos.c:212:6:StartDefaultTask	1
+../Core/Src/freertos.c:230:6:BlueLight	3
+../Core/Src/freertos.c:259:6:inputOutput	1
+../Core/Src/freertos.c:285:6:updateState	32
+../Core/Src/freertos.c:384:6:RedDelayCallback	1
+../Core/Src/freertos.c:394:6:YellowDelayCallback	6
+../Core/Src/freertos.c:425:6:GreenDelayCallback	1
+../Core/Src/freertos.c:435:6:PedDelayCallback	1
+../Core/Src/freertos.c:448:6:WalkingDelayCallback	1
+../Core/Src/freertos.c:457:6:noCar	5
+../Core/Src/freertos.c:461:6:noCarLeftRight	3
+../Core/Src/freertos.c:465:6:noCarTopBottom	3

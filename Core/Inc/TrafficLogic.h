@@ -9,12 +9,9 @@
 #define INC_TRAFFICLIGHT_LOGIC_H_
 
 #include "stdbool.h"
+#include "trafficLights.h"
+#include "TrafficInputs.h"
 
-typedef enum{
-	LeftRightActive,
-	TopBottomActive,
-	Transition
-}TrafficState;
 
 /*
  * The blue light blink with this frequency to indicate a pedestrian wants to cross.
@@ -25,13 +22,13 @@ typedef enum{
 /*
  * The signal for pedestrians stays green at least this amount of time.
  */
-#define WALKING_DELAY 6000;
+#define WALKING_DELAY 8000
 
 
 /*
  * The signal for pedestrians turn green at least after this amount of time.
  */
-#define PEDESTRIAN_DELAY 12000
+#define PEDESTRIAN_DELAY 8000
 
 
 /*
@@ -43,7 +40,7 @@ typedef enum{
 /*
  * If there is no active cars in either direction, the other lane is turned green after this amount of time.
  */
-#define GREEN_DELAY 8000
+#define GREEN_DELAY 6000
 
 
 /*
@@ -51,13 +48,15 @@ typedef enum{
  */
 #define RED_DELAY_MAX 10000
 
+void activateTopBottom(void);
 
-bool pedestrianTopWaiting = false;
+void activateLeftRight(void);
 
-bool pedestrianLeftWaiting = false;
+void activateTransition(void);
 
-TrafficState state = TopBottomActive;
+void activatePedLeft(void);
 
+void activatePedTop(void);
 
 
 #endif /* INC_TRAFFICLIGHT_LOGIC_H_ */

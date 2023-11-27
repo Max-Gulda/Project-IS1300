@@ -123,5 +123,7 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 }
 
 /* USER CODE BEGIN 1 */
-
+UART_HandleTypeDef* getHuart(){
+	return &huart2;
+}
 /* USER CODE END 1 */
