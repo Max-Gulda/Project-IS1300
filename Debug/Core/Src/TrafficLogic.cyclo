@@ -1,5 +1,9 @@
-../Core/Src/TrafficLogic.c:10:6:activateTopBottom	1
-../Core/Src/TrafficLogic.c:22:6:activateLeftRight	1
-../Core/Src/TrafficLogic.c:34:6:activatePedLeft	1
-../Core/Src/TrafficLogic.c:39:6:activatePedTop	1
-../Core/Src/TrafficLogic.c:44:6:activateTransition	1
+../Core/Src/TrafficLogic.c:33:6:initTrafficLogic	1
+../Core/Src/TrafficLogic.c:44:6:TrafficCrossing	5
+../Core/Src/TrafficLogic.c:58:24:getTrafficAction	1
+../Core/Src/TrafficLogic.c:62:6:ActivateNextState	1
+../Core/Src/TrafficLogic.c:70:6:OneLane	14
+../Core/Src/TrafficLogic.c:154:6:TwoLane	27
+../Core/Src/TrafficLogic.c:274:6:TwoLanePed	46
+../Core/Src/TrafficLogic.c:545:6:NoCarV	1
+../Core/Src/TrafficLogic.c:549:6:NoCarH	1

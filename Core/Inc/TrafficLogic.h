@@ -48,15 +48,45 @@
  */
 #define RED_DELAY_MAX 10000
 
-void activateTopBottom(void);
+typedef enum{
+	PedOneLane,
+	NoPedTwoLane,
+	PedTwoLane
+}CrossingVersion;
 
-void activateLeftRight(void);
+typedef struct{
+	bool TopPedWaiting;
+	bool LeftPedWaiting;
+	bool StartTimerForNextState;
+	uint16_t KeepStateFor;
+}TrafficCrossingAction;
 
-void activateTransition(void);
+typedef enum{
+	H_Active,
+	H_P_Active,
+	V_Active,
+	V_P_Active,
+	Transition_To_H,
+	Transition_To_V
 
-void activatePedLeft(void);
+}TrafficCrossingState;
 
-void activatePedTop(void);
+void ActivateNextState(void);
 
+TrafficCrossingAction* getTrafficAction(void);
+
+void TrafficCrossing(ButtonStates _buttonState);
+
+void initTrafficLogic(CrossingVersion cross);
+
+void TwoLanePed(ButtonStates button);
+
+void TwoLane(ButtonStates button);
+
+void OneLane(ButtonStates button);
+
+bool NoCarV(ButtonStates button);
+
+bool NoCarH(ButtonStates button);
 
 #endif /* INC_TRAFFICLIGHT_LOGIC_H_ */

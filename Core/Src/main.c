@@ -96,7 +96,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
   initTrafficLights(&hspi3);
   init_TrafficInputs();
-  //Test_Program();
+  Test_Program();
 
   /* USER CODE END 2 */
 

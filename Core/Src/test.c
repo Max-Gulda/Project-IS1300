@@ -14,15 +14,145 @@ static void testLights(void);
 //void activateTopBottom();
 //void activateLeftRight();
 //void activateTransition();
+TrafficCrossingAction *TrafficActionTest;
 
 void Test_Program(){
+	//initTrafficLogic(PedOneLane);
+	//initTrafficLogic(NoPedTwoLane);
+	initTrafficLogic(PedTwoLane);
+	updateLights();
+	TrafficActionTest = getTrafficAction();
+	testTrafficLogicTwoLanePed();
 	while(1){
+		turnOnAllLights();
+		updateLights();
+		HAL_Delay(50);
+		turnOffAllLights();
+		updateLights();
+		HAL_Delay(50);
+		//testTrafficLogicOneLane();
+		//testFasterLight();
 		//testLightLogic();
 		//testBlueLightToggle();
-		testInputs();
+		//testInputs();
 		//testLights();
 		//testHC595();
 	}
+}
+
+// Function to simulate one test scenario
+void simulateTestScenario(ButtonStates testInput) {
+
+    // Run your traffic logic
+    TrafficCrossing(testInput); // Use the fake input state
+    if(TrafficActionTest->LeftPedWaiting){
+		ControlLight(BLUE_PED_LEFT, ON);
+	} else {
+		ControlLight(BLUE_PED_LEFT, OFF);
+	}
+
+	if(TrafficActionTest->TopPedWaiting){
+		ControlLight(BLUE_PED_TOP, ON);
+	} else {
+		ControlLight(BLUE_PED_TOP, OFF);
+	}
+    updateLights();
+}
+
+
+void testTrafficLogicTwoLanePed() {
+	int startAt = 1;
+    for (int i = 0; i < 64; i++) { //2^6 different scenarios
+        ButtonStates scenario;
+        scenario.LeftCar = (i & 0x01) != 0; // 1st bit
+        scenario.BottomCar = (i & 0x02) != 0; // 2nd bit
+        scenario.RightCar = (i & 0x04) != 0; // 3rd bit
+        scenario.TopCar = (i & 0x08) != 0; // 4th bit
+        scenario.LeftPed = (i & 0x10) != 0; // 5th bit
+        scenario.TopPed = (i & 0x20) != 0; // 6th bit
+
+        for(int j = 0; j < 10; j++){ //Test each scenario ten times.
+        	simulateTestScenario(scenario);
+
+			if (TrafficActionTest->StartTimerForNextState) {
+				if(TrafficActionTest->KeepStateFor == 1){ //Indicate "no delay" through blinking both blue lights.
+					toggleBlueLeft();
+					toggleBlueTop();
+					updateLights();
+					HAL_Delay(200/10);
+					toggleBlueLeft();
+					toggleBlueTop();
+					updateLights();
+					HAL_Delay(200/10);
+				}else{
+					HAL_Delay(TrafficActionTest->KeepStateFor/10);
+				}
+
+				TrafficActionTest->StartTimerForNextState = false;
+				ActivateNextState();
+			}else{
+				toggleBlueLeft();
+				toggleBlueTop();
+				updateLights();
+				HAL_Delay(200/10);
+				toggleBlueLeft();
+				toggleBlueTop();
+				updateLights();
+				HAL_Delay(200/10);
+			}
+			if(hasError()){
+				while(1){
+					turnOnAllLights();
+					updateLights();
+				}
+			}
+
+        }
+
+
+    }
+}
+
+
+
+
+void testTrafficLogicOneLane(){
+	trafficInputs_Update();
+	TrafficCrossing(getInputState());
+	updateLights();
+
+	if(TrafficActionTest->LeftPedWaiting){
+		ControlLight(BLUE_PED_LEFT, ON);
+		updateLights();
+	} else {
+		ControlLight(BLUE_PED_LEFT, OFF);
+		updateLights();
+	}
+
+	if(TrafficActionTest->TopPedWaiting){
+		ControlLight(BLUE_PED_TOP, ON);
+		updateLights();
+	} else {
+		ControlLight(BLUE_PED_TOP, OFF);
+		updateLights();
+	}
+	if(TrafficActionTest->StartTimerForNextState){
+		HAL_Delay(TrafficActionTest->KeepStateFor);
+		TrafficActionTest->StartTimerForNextState = false;
+		ActivateNextState();
+	}
+
+}
+
+void testFasterLight(){
+	uint8_t lightsToTurnOn[3] = {0b00000101, 0b00000111, 0b00011111};
+	setLightsState(lightsToTurnOn, ON);
+	updateLights();
+	HAL_Delay(1000);
+
+	setLightsState(lightsToTurnOn, OFF);
+	updateLights();
+	HAL_Delay(500);
 }
 
 void testLightLogic(){
@@ -320,4 +450,79 @@ void testHC595(){
 	buff[2] = 0b11100000;
 	hc595_update(buff);
 	HAL_Delay(TEST_SPEED);
+}
+/*
+bool GetRedRight();
+bool GetYellowRight();
+bool GetGreenRight();
+
+bool GetRedTop();
+bool GetYellowTop();
+bool GetGreenTop();
+
+bool GetRedBottom();
+bool GetYellowBottom();
+bool GetGreenBottom();
+
+bool GetRedPedTop();
+bool GetGreenPedTop();
+bool GetBluePedTop();
+
+bool GetRedLeft();
+bool GetYellowLeft();
+bool GetGreenLeft();
+
+bool GetRedPedLeft();
+bool GetGreenPedLeft();
+bool GetBluePedLeft();
+*/
+bool hasError(){
+	//Two conflicting lanes green at the same time
+	if(GetGreenTop() || GetGreenBottom()){
+		if(!(GetRedLeft() && GetRedRight())){
+			return true;
+		}
+	}
+
+	if(GetGreenLeft() || GetGreenRight()){
+		if(!(GetRedTop() && GetRedBottom())){
+			return true;
+		}
+	}
+
+	if(GetGreenPedLeft()){
+		if(!(GetRedLeft() && GetRedRight())){
+			return true;
+		}
+	}
+
+	if(GetGreenPedTop()){
+		if(!(GetRedTop() && GetRedBottom())){
+			return true;
+		}
+	}
+
+	//Two lights on the same traffic light is on at the same time
+	if (!((GetRedTop() ^ GetYellowTop() ^ GetGreenTop()) && !(GetRedTop() && GetYellowTop() && GetGreenTop()))) {
+		return true;
+	}
+	if (!((GetRedBottom() ^ GetYellowBottom() ^ GetGreenBottom()) && !(GetRedBottom() && GetYellowBottom() && GetGreenBottom()))) {
+		return true;
+	}
+	if (!((GetRedLeft() ^ GetYellowLeft() ^ GetGreenLeft()) && !(GetRedLeft() && GetYellowLeft() && GetGreenLeft()))) {
+		return true;
+	}
+	if (!((GetRedRight() ^ GetYellowRight() ^ GetGreenRight()) && !(GetRedRight() && GetYellowRight() && GetGreenRight()))) {
+		return true;
+	}
+
+	// Check for pedestrian lights
+	if (GetGreenPedTop() && GetRedPedTop()) {
+		return true;
+	}
+	if (GetGreenPedLeft() && GetRedPedLeft()) {
+		return true;
+	}
+
+	return false;
 }

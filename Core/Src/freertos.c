@@ -33,11 +33,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-typedef enum{
-	TopBottomActive,
-	LeftRightActive,
-	Transition
-}trafficState;
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -53,14 +49,9 @@ typedef enum{
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 
-trafficState state = TopBottomActive;
-trafficState lastActive = TopBottomActive;
-bool topPedWaiting = false;
-bool leftPedWaiting = false;
+ButtonStates inputState;
 
-bool transitionActivated = false;
-
-ButtonStates inputStates;
+TrafficCrossingAction *TrafficAction;
 
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
@@ -91,48 +82,22 @@ const osThreadAttr_t updateStateTask_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityHigh,
 };
-/* Definitions for RedDelay */
-osTimerId_t RedDelayHandle;
-const osTimerAttr_t RedDelay_attributes = {
-  .name = "RedDelay"
-};
-/* Definitions for YellowDelay */
-osTimerId_t YellowDelayHandle;
-const osTimerAttr_t YellowDelay_attributes = {
-  .name = "YellowDelay"
-};
-/* Definitions for GreenDelay */
-osTimerId_t GreenDelayHandle;
-const osTimerAttr_t GreenDelay_attributes = {
-  .name = "GreenDelay"
-};
-/* Definitions for PedDelay */
-osTimerId_t PedDelayHandle;
-const osTimerAttr_t PedDelay_attributes = {
-  .name = "PedDelay"
-};
-/* Definitions for WalkingDelay */
-osTimerId_t WalkingDelayHandle;
-const osTimerAttr_t WalkingDelay_attributes = {
-  .name = "WalkingDelay"
+/* Definitions for Delay */
+osTimerId_t DelayHandle;
+const osTimerAttr_t Delay_attributes = {
+  .name = "Delay"
 };
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
-bool noCar(void);
-bool noCarTopBottom(void);
-bool noCarLeftRight(void);
+
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void *argument);
 void BlueLight(void *argument);
 void inputOutput(void *argument);
 void updateState(void *argument);
-void RedDelayCallback(void *argument);
-void YellowDelayCallback(void *argument);
-void GreenDelayCallback(void *argument);
-void PedDelayCallback(void *argument);
-void WalkingDelayCallback(void *argument);
+void DelayCallback(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -155,20 +120,8 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_SEMAPHORES */
 
   /* Create the timer(s) */
-  /* creation of RedDelay */
-  RedDelayHandle = osTimerNew(RedDelayCallback, osTimerOnce, NULL, &RedDelay_attributes);
-
-  /* creation of YellowDelay */
-  YellowDelayHandle = osTimerNew(YellowDelayCallback, osTimerOnce, NULL, &YellowDelay_attributes);
-
-  /* creation of GreenDelay */
-  GreenDelayHandle = osTimerNew(GreenDelayCallback, osTimerOnce, NULL, &GreenDelay_attributes);
-
-  /* creation of PedDelay */
-  PedDelayHandle = osTimerNew(PedDelayCallback, osTimerOnce, NULL, &PedDelay_attributes);
-
-  /* creation of WalkingDelay */
-  WalkingDelayHandle = osTimerNew(WalkingDelayCallback, osTimerOnce, NULL, &WalkingDelay_attributes);
+  /* creation of Delay */
+  DelayHandle = osTimerNew(DelayCallback, osTimerOnce, NULL, &Delay_attributes);
 
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
@@ -196,7 +149,11 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
-  activateTopBottom();
+  //initTrafficLogic(PedOneLane);
+  //initTrafficLogic(NoPedTwoLane);
+  initTrafficLogic(PedTwoLane);
+  TrafficAction = getTrafficAction();
+
   /* add events, ... */
   /* USER CODE END RTOS_EVENTS */
 
@@ -237,12 +194,15 @@ void BlueLight(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	  if(topPedWaiting){
-		  toggleBlueTop();
-	  }
-
-	  if(leftPedWaiting){
+	  if(TrafficAction->LeftPedWaiting){
 		  toggleBlueLeft();
+	  } else {
+		  ControlLight(BLUE_PED_LEFT, OFF);
+	  }
+	  if(TrafficAction->TopPedWaiting){
+		  toggleBlueTop();
+	  } else {
+		  ControlLight(BLUE_PED_TOP, OFF);
 	  }
 	  vTaskDelayUntil(&xLastWakeTime, xPeriod);
   }
@@ -268,7 +228,7 @@ void inputOutput(void *argument)
   for(;;)
   {
 	  trafficInputs_Update();
-	  inputStates = getInputState();
+	  inputState = getInputState();
 	  updateLights();
 	  vTaskDelayUntil(&xLastWakeTime, xPeriod);
   }
@@ -291,179 +251,26 @@ void updateState(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	  switch(state){
-	  	  case TopBottomActive :
-	  		  if(noCar()){
-	  			  if(!osTimerIsRunning(GreenDelayHandle)){
-	  				osTimerStart(GreenDelayHandle, pdMS_TO_TICKS(GREEN_DELAY));
-	  			  }
-	  		  } else {
-	  			  osTimerStop(GreenDelayHandle);
-	  		  }
-
-	  		  if(inputStates.LeftPed){
-	  			  activatePedLeft();
-	  			  if(!osTimerIsRunning(WalkingDelayHandle)){
-	  				  osTimerStart(WalkingDelayHandle, pdMS_TO_TICKS(WALKING_DELAY));
-	  			  }
-	  		  }
-
-	  		  if(inputStates.TopPed){
-	  			  if(!osTimerIsRunning(PedDelayHandle)){
-					  osTimerStart(PedDelayHandle, pdMS_TO_TICKS(PEDESTRIAN_DELAY));
-				  }
-	  			  topPedWaiting = true;
-	  		  }
-
-	  		  if(noCarTopBottom() && !noCarLeftRight() && !osTimerIsRunning(WalkingDelayHandle)){
-	  			  state = Transition;
-	  			  lastActive = TopBottomActive;
-	  		  } else if(!noCarTopBottom() && !noCarLeftRight()){
-	  			  if(!osTimerIsRunning(RedDelayHandle)){
-	  				  osTimerStart(RedDelayHandle, pdMS_TO_TICKS(RED_DELAY_MAX));
-	  			  }
-	  		  }
-	  		  transitionActivated = false;
-	  		  lastActive = TopBottomActive;
-	  		  break;
-	  	  case LeftRightActive :
-	  		  if(noCar()){
-	  			  if(!osTimerIsRunning(GreenDelayHandle)){
-	  				  osTimerStart(GreenDelayHandle, pdMS_TO_TICKS(GREEN_DELAY));
-	  			  }
-			  } else {
-				  osTimerStop(GreenDelayHandle);
-			  }
-
-	  		  if(inputStates.TopPed){
-	  			activatePedTop();
-				if(!osTimerIsRunning(WalkingDelayHandle)){
-					osTimerStart(WalkingDelayHandle, pdMS_TO_TICKS(WALKING_DELAY));
-				}
-	  		  }
-
-	  		  if(inputStates.LeftPed){
-	  			  if(!osTimerIsRunning(PedDelayHandle)){
-	  				  osTimerStart(PedDelayHandle, pdMS_TO_TICKS(PEDESTRIAN_DELAY));
-	  			  }
-				  leftPedWaiting = true;
-			  }
-
-	  		  if(noCarLeftRight() && !noCarTopBottom() && !osTimerIsRunning(WalkingDelayHandle)){
-				  state = Transition;
-				  lastActive = TopBottomActive;
-	  		  } else if(!noCarTopBottom() && !noCarLeftRight()){
-	  			  if(!osTimerIsRunning(RedDelayHandle)){
-	  				  osTimerStart(RedDelayHandle, pdMS_TO_TICKS(RED_DELAY_MAX));
-	  			  }
-	  		  }
-	  		  transitionActivated = false;
-	  		  lastActive = LeftRightActive;
-	  		  break;
-	  	  case Transition :
-	  		  if(!osTimerIsRunning(WalkingDelayHandle)){
-	  			if(!osTimerIsRunning(YellowDelayHandle)){
-	  				osTimerStart(YellowDelayHandle, pdMS_TO_TICKS(YELLOW_DELAY));
-				}
-	  			if(!transitionActivated){
-	  				activateTransition();
-	  				transitionActivated = true;
-	  			}
-
-	  		  }
-
-	  		  break;
+	  TrafficCrossing(inputState);
+	  if(TrafficAction->StartTimerForNextState){
+		  osTimerStart(DelayHandle, pdMS_TO_TICKS(TrafficAction->KeepStateFor));
+		  TrafficAction->StartTimerForNextState = false;
 	  }
-
 	  vTaskDelayUntil(&xLastWakeTime, xPeriod);
   }
   /* USER CODE END updateState */
 }
 
-/* RedDelayCallback function */
-void RedDelayCallback(void *argument)
+/* DelayCallback function */
+void DelayCallback(void *argument)
 {
-  /* USER CODE BEGIN RedDelayCallback */
-	osTimerStop(GreenDelayHandle);
-	osTimerStop(PedDelayHandle);
-	state = Transition;
-  /* USER CODE END RedDelayCallback */
-}
-
-/* YellowDelayCallback function */
-void YellowDelayCallback(void *argument)
-{
-  /* USER CODE BEGIN YellowDelayCallback */
-	osTimerStop(GreenDelayHandle);
-	osTimerStop(RedDelayHandle);
-
-	if(lastActive == LeftRightActive){
-		activateTopBottom();
-		state = TopBottomActive;
-		if(leftPedWaiting){
-			activatePedLeft();
-			leftPedWaiting = false;
-			if(!osTimerIsRunning(WalkingDelayHandle) ){
-				osTimerStart(WalkingDelayHandle, pdMS_TO_TICKS(WALKING_DELAY));
-			}
-		}
-	} else {
-		activateLeftRight();
-		state = LeftRightActive;
-		if(topPedWaiting){
-			activatePedTop();
-			topPedWaiting = false;
-			if(!osTimerIsRunning(WalkingDelayHandle) ){
-				osTimerStart(WalkingDelayHandle, pdMS_TO_TICKS(WALKING_DELAY));
-			}
-		}
-	}
-  /* USER CODE END YellowDelayCallback */
-}
-
-/* GreenDelayCallback function */
-void GreenDelayCallback(void *argument)
-{
-  /* USER CODE BEGIN GreenDelayCallback */
-	osTimerStop(RedDelayHandle);
-	osTimerStop(PedDelayHandle);
-	state = Transition;
-  /* USER CODE END GreenDelayCallback */
-}
-
-/* PedDelayCallback function */
-void PedDelayCallback(void *argument)
-{
-  /* USER CODE BEGIN PedDelayCallback */
-	osTimerStop(RedDelayHandle);
-	osTimerStop(GreenDelayHandle);
-
-	state = Transition;
-
-
-  /* USER CODE END PedDelayCallback */
-}
-
-/* WalkingDelayCallback function */
-void WalkingDelayCallback(void *argument)
-{
-  /* USER CODE BEGIN WalkingDelayCallback */
-
-  /* USER CODE END WalkingDelayCallback */
+  /* USER CODE BEGIN DelayCallback */
+	ActivateNextState();
+  /* USER CODE END DelayCallback */
 }
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
-bool noCar(void){
-	return !(inputStates.BottomCar || inputStates.LeftCar || inputStates.TopCar || inputStates.RightCar);
-}
 
-bool noCarLeftRight(void){
-	return !(inputStates.LeftCar || inputStates.RightCar);
-}
-
-bool noCarTopBottom(void){
-	return !(inputStates.BottomCar || inputStates.TopCar);
-}
 /* USER CODE END Application */
 

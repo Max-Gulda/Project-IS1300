@@ -10,6 +10,7 @@
 
 #include "main.h"
 #include "hc595.h"
+#include "stdbool.h"
 
 #define RED_RIGHT 0
 #define YELLOW_RIGHT 1
@@ -57,5 +58,30 @@ void turnOffAllLights(void);
 void toggleBlueLeft(void);
 
 void toggleBlueTop(void);
+
+void setLightsState(uint8_t lightMasks[3], LightState state);
+
+
+/*********** Testing functions **************/
+
+bool GetRedRight();
+bool GetYellowRight();
+bool GetGreenRight();
+bool GetRedTop();
+bool GetYellowTop();
+bool GetGreenTop();
+bool GetRedBottom();
+bool GetYellowBottom();
+bool GetGreenBottom();
+bool GetRedPedTop();
+bool GetGreenPedTop();
+bool GetBluePedTop();
+bool GetRedLeft();
+bool GetYellowLeft();
+bool GetGreenLeft();
+bool GetRedPedLeft();
+bool GetGreenPedLeft();
+bool GetBluePedLeft();
+
 
 #endif /* INC_TRAFFICLIGHTS_H_ */
