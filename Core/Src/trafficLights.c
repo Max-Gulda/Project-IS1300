@@ -106,76 +106,76 @@ void setLightsState(uint8_t lightMasks[3], LightState state) {
     lightsChanged = true;
 }
 
-/********* Testing Functions **************/
+/********* Functions only used for testing **************/
 bool GetRedRight() {
-    return (buffer[lightConfigs[RED_RIGHT].bufferIndex] & (1 << lightConfigs[RED_RIGHT].bitPosition)) != 0;
+    return (buffer[lightConfigs[RED_RIGHT].bufferIndex] 		& (1 << lightConfigs[RED_RIGHT].bitPosition)) != 0;
 }
 
 bool GetYellowRight() {
-    return (buffer[lightConfigs[YELLOW_RIGHT].bufferIndex] & (1 << lightConfigs[YELLOW_RIGHT].bitPosition)) != 0;
+	return (buffer[lightConfigs[YELLOW_RIGHT].bufferIndex] 		& (1 << lightConfigs[YELLOW_RIGHT].bitPosition)) != 0;
 }
 
 bool GetGreenRight() {
-    return (buffer[lightConfigs[GREEN_RIGHT].bufferIndex] & (1 << lightConfigs[GREEN_RIGHT].bitPosition)) != 0;
+    return (buffer[lightConfigs[GREEN_RIGHT].bufferIndex] 		& (1 << lightConfigs[GREEN_RIGHT].bitPosition)) != 0;
 }
 
 bool GetRedTop() {
-    return (buffer[lightConfigs[RED_TOP].bufferIndex] & (1 << lightConfigs[RED_TOP].bitPosition)) != 0;
+    return (buffer[lightConfigs[RED_TOP].bufferIndex] 			& (1 << lightConfigs[RED_TOP].bitPosition)) != 0;
 }
 
 bool GetYellowTop() {
-    return (buffer[lightConfigs[YELLOW_TOP].bufferIndex] & (1 << lightConfigs[YELLOW_TOP].bitPosition)) != 0;
+    return (buffer[lightConfigs[YELLOW_TOP].bufferIndex] 		& (1 << lightConfigs[YELLOW_TOP].bitPosition)) != 0;
 }
 
 bool GetGreenTop() {
-    return (buffer[lightConfigs[GREEN_TOP].bufferIndex] & (1 << lightConfigs[GREEN_TOP].bitPosition)) != 0;
+    return (buffer[lightConfigs[GREEN_TOP].bufferIndex] 		& (1 << lightConfigs[GREEN_TOP].bitPosition)) != 0;
 }
 
 bool GetRedBottom() {
-    return (buffer[lightConfigs[RED_BOTTOM].bufferIndex] & (1 << lightConfigs[RED_BOTTOM].bitPosition)) != 0;
+    return (buffer[lightConfigs[RED_BOTTOM].bufferIndex] 		& (1 << lightConfigs[RED_BOTTOM].bitPosition)) != 0;
 }
 
 bool GetYellowBottom() {
-    return (buffer[lightConfigs[YELLOW_BOTTOM].bufferIndex] & (1 << lightConfigs[YELLOW_BOTTOM].bitPosition)) != 0;
+    return (buffer[lightConfigs[YELLOW_BOTTOM].bufferIndex] 	& (1 << lightConfigs[YELLOW_BOTTOM].bitPosition)) != 0;
 }
 
 bool GetGreenBottom() {
-    return (buffer[lightConfigs[GREEN_BOTTOM].bufferIndex] & (1 << lightConfigs[GREEN_BOTTOM].bitPosition)) != 0;
+    return (buffer[lightConfigs[GREEN_BOTTOM].bufferIndex] 		& (1 << lightConfigs[GREEN_BOTTOM].bitPosition)) != 0;
 }
 
 bool GetRedPedTop() {
-    return (buffer[lightConfigs[RED_PED_TOP].bufferIndex] & (1 << lightConfigs[RED_PED_TOP].bitPosition)) != 0;
+    return (buffer[lightConfigs[RED_PED_TOP].bufferIndex] 		& (1 << lightConfigs[RED_PED_TOP].bitPosition)) != 0;
 }
 
 bool GetGreenPedTop() {
-    return (buffer[lightConfigs[GREEN_PED_TOP].bufferIndex] & (1 << lightConfigs[GREEN_PED_TOP].bitPosition)) != 0;
+    return (buffer[lightConfigs[GREEN_PED_TOP].bufferIndex] 	& (1 << lightConfigs[GREEN_PED_TOP].bitPosition)) != 0;
 }
 
 bool GetBluePedTop() {
-    return (buffer[lightConfigs[BLUE_PED_TOP].bufferIndex] & (1 << lightConfigs[BLUE_PED_TOP].bitPosition)) != 0;
+    return (buffer[lightConfigs[BLUE_PED_TOP].bufferIndex] 		& (1 << lightConfigs[BLUE_PED_TOP].bitPosition)) != 0;
 }
 
 bool GetRedLeft() {
-    return (buffer[lightConfigs[RED_LEFT].bufferIndex] & (1 << lightConfigs[RED_LEFT].bitPosition)) != 0;
+    return (buffer[lightConfigs[RED_LEFT].bufferIndex] 			& (1 << lightConfigs[RED_LEFT].bitPosition)) != 0;
 }
 
 bool GetYellowLeft() {
-    return (buffer[lightConfigs[YELLOW_LEFT].bufferIndex] & (1 << lightConfigs[YELLOW_LEFT].bitPosition)) != 0;
+    return (buffer[lightConfigs[YELLOW_LEFT].bufferIndex] 		& (1 << lightConfigs[YELLOW_LEFT].bitPosition)) != 0;
 }
 
 bool GetGreenLeft() {
-    return (buffer[lightConfigs[GREEN_LEFT].bufferIndex] & (1 << lightConfigs[GREEN_LEFT].bitPosition)) != 0;
+    return (buffer[lightConfigs[GREEN_LEFT].bufferIndex] 		& (1 << lightConfigs[GREEN_LEFT].bitPosition)) != 0;
 }
 
 bool GetRedPedLeft() {
-    return (buffer[lightConfigs[RED_PED_LEFT].bufferIndex] & (1 << lightConfigs[RED_PED_LEFT].bitPosition)) != 0;
+    return (buffer[lightConfigs[RED_PED_LEFT].bufferIndex] 		& (1 << lightConfigs[RED_PED_LEFT].bitPosition)) != 0;
 }
 
 bool GetGreenPedLeft() {
-    return (buffer[lightConfigs[GREEN_PED_LEFT].bufferIndex] & (1 << lightConfigs[GREEN_PED_LEFT].bitPosition)) != 0;
+    return (buffer[lightConfigs[GREEN_PED_LEFT].bufferIndex] 	& (1 << lightConfigs[GREEN_PED_LEFT].bitPosition)) != 0;
 }
 
 bool GetBluePedLeft() {
-    return (buffer[lightConfigs[BLUE_PED_LEFT].bufferIndex] & (1 << lightConfigs[BLUE_PED_LEFT].bitPosition)) != 0;
+    return (buffer[lightConfigs[BLUE_PED_LEFT].bufferIndex] 	& (1 << lightConfigs[BLUE_PED_LEFT].bitPosition)) != 0;
 }
 

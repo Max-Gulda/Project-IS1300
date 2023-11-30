@@ -51,6 +51,8 @@
 
 ButtonStates inputState;
 
+ButtonStates tempInputState;
+
 TrafficCrossingAction *TrafficAction;
 
 /* USER CODE END Variables */
@@ -73,19 +75,24 @@ osThreadId_t UpdateInputOutpHandle;
 const osThreadAttr_t UpdateInputOutp_attributes = {
   .name = "UpdateInputOutp",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityAboveNormal,
+  .priority = (osPriority_t) osPriorityHigh,
 };
 /* Definitions for updateStateTask */
 osThreadId_t updateStateTaskHandle;
 const osThreadAttr_t updateStateTask_attributes = {
   .name = "updateStateTask",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityHigh,
+  .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for Delay */
 osTimerId_t DelayHandle;
 const osTimerAttr_t Delay_attributes = {
   .name = "Delay"
+};
+/* Definitions for Semaphore */
+osSemaphoreId_t SemaphoreHandle;
+const osSemaphoreAttr_t Semaphore_attributes = {
+  .name = "Semaphore"
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -114,6 +121,10 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
+
+  /* Create the semaphores(s) */
+  /* creation of Semaphore */
+  SemaphoreHandle = osSemaphoreNew(1, 1, &Semaphore_attributes);
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
@@ -227,8 +238,30 @@ void inputOutput(void *argument)
   /* Infinite loop */
   for(;;)
   {
+	  if(osSemaphoreAcquire(SemaphoreHandle, 0)){
+		  tempInputState = getInputState();
+		  if(tempInputState.BottomCar){
+			  inputState.BottomCar = true;
+		  }
+		  if(tempInputState.LeftCar){
+			  inputState.LeftCar = true;
+		  }
+		  if(tempInputState.LeftPed){
+			  inputState.LeftPed = true;
+		  }
+		  if(tempInputState.RightCar){
+			  inputState.RightCar = true;
+		  }
+		  if(tempInputState.TopCar){
+			  inputState.TopCar = true;
+		  }
+		  if(tempInputState.TopPed){
+			  inputState.TopPed = true;
+		  }
+		  osSemaphoreRelease(SemaphoreHandle);
+	  }
 	  trafficInputs_Update();
-	  inputState = getInputState();
+
 	  updateLights();
 	  vTaskDelayUntil(&xLastWakeTime, xPeriod);
   }
@@ -255,6 +288,16 @@ void updateState(void *argument)
 	  if(TrafficAction->StartTimerForNextState){
 		  osTimerStart(DelayHandle, pdMS_TO_TICKS(TrafficAction->KeepStateFor));
 		  TrafficAction->StartTimerForNextState = false;
+	  }
+	  if(osSemaphoreAcquire(SemaphoreHandle, 0)){
+		  inputState.BottomCar = false;
+		  inputState.LeftCar = false;
+		  inputState.LeftPed = false;
+		  inputState.RightCar = false;
+		  inputState.TopCar = false;
+		  inputState.TopPed = false;
+
+		  osSemaphoreRelease(SemaphoreHandle);
 	  }
 	  vTaskDelayUntil(&xLastWakeTime, xPeriod);
   }

@@ -4,6 +4,6 @@
 ../Core/Src/TrafficLogic.c:62:6:ActivateNextState	1
 ../Core/Src/TrafficLogic.c:70:6:OneLane	14
 ../Core/Src/TrafficLogic.c:154:6:TwoLane	27
-../Core/Src/TrafficLogic.c:274:6:TwoLanePed	46
-../Core/Src/TrafficLogic.c:545:6:NoCarV	1
-../Core/Src/TrafficLogic.c:549:6:NoCarH	1
+../Core/Src/TrafficLogic.c:274:6:TwoLanePed	51
+../Core/Src/TrafficLogic.c:561:6:NoCarV	1
+../Core/Src/TrafficLogic.c:565:6:NoCarH	1

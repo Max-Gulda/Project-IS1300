@@ -8,7 +8,6 @@
 
 #define TEST_SPEED 200
 
-static void testLights(void);
 
 
 //void activateTopBottom();
@@ -451,31 +450,7 @@ void testHC595(){
 	hc595_update(buff);
 	HAL_Delay(TEST_SPEED);
 }
-/*
-bool GetRedRight();
-bool GetYellowRight();
-bool GetGreenRight();
 
-bool GetRedTop();
-bool GetYellowTop();
-bool GetGreenTop();
-
-bool GetRedBottom();
-bool GetYellowBottom();
-bool GetGreenBottom();
-
-bool GetRedPedTop();
-bool GetGreenPedTop();
-bool GetBluePedTop();
-
-bool GetRedLeft();
-bool GetYellowLeft();
-bool GetGreenLeft();
-
-bool GetRedPedLeft();
-bool GetGreenPedLeft();
-bool GetBluePedLeft();
-*/
 bool hasError(){
 	//Two conflicting lanes green at the same time
 	if(GetGreenTop() || GetGreenBottom()){

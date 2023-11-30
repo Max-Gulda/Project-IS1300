@@ -5,5 +5,5 @@
 ../Core/Src/TrafficLogic.c:70:6:OneLane	16	static
 ../Core/Src/TrafficLogic.c:154:6:TwoLane	16	static
 ../Core/Src/TrafficLogic.c:274:6:TwoLanePed	16	static
-../Core/Src/TrafficLogic.c:545:6:NoCarV	16	static
-../Core/Src/TrafficLogic.c:549:6:NoCarH	16	static
+../Core/Src/TrafficLogic.c:561:6:NoCarV	16	static
+../Core/Src/TrafficLogic.c:565:6:NoCarH	16	static

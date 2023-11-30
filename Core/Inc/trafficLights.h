@@ -12,30 +12,30 @@
 #include "hc595.h"
 #include "stdbool.h"
 
-#define RED_RIGHT 0
-#define YELLOW_RIGHT 1
-#define GREEN_RIGHT 2
-#define RED_TOP 3
-#define YELLOW_TOP 4
-#define GREEN_TOP 5
+#define RED_RIGHT 		0
+#define YELLOW_RIGHT 	1
+#define GREEN_RIGHT 	2
+#define RED_TOP 		3
+#define YELLOW_TOP 		4
+#define GREEN_TOP 		5
 
-#define RED_BOTTOM 6
-#define YELLOW_BOTTOM 7
-#define GREEN_BOTTOM 8
-#define RED_PED_TOP 9
-#define GREEN_PED_TOP 10
-#define BLUE_PED_TOP 11
+#define RED_BOTTOM 		6
+#define YELLOW_BOTTOM 	7
+#define GREEN_BOTTOM 	8
+#define RED_PED_TOP 	9
+#define GREEN_PED_TOP 	10
+#define BLUE_PED_TOP 	11
 
-#define RED_LEFT 12
-#define YELLOW_LEFT 13
-#define GREEN_LEFT 14
-#define RED_PED_LEFT 15
-#define GREEN_PED_LEFT 16
-#define BLUE_PED_LEFT 17
+#define RED_LEFT 		12
+#define YELLOW_LEFT 	13
+#define GREEN_LEFT 		14
+#define RED_PED_LEFT 	15
+#define GREEN_PED_LEFT 	16
+#define BLUE_PED_LEFT 	17
 
 typedef enum {
-    OFF = 0,
-    ON = 1
+    OFF = 	0,
+    ON = 	1
 } LightState;
 
 typedef struct {

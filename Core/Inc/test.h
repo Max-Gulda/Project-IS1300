@@ -16,5 +16,14 @@
 
 void Test_Program();
 bool hasError();
+void testHC595();
+void testLights(void);
+void testInputs(void);
+void testBlueLightToggle();
+void testLightLogic();
+void testFasterLight();
+void testTrafficLogicOneLane();
+void testTrafficLogicTwoLanePed();
+void simulateTestScenario(ButtonStates testInput);
 
 #endif /* INC_TEST_H_ */

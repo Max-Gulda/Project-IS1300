@@ -326,7 +326,9 @@ void TwoLanePed(ButtonStates button){
 			break;
 
 		case V_P_Active:
-			if(!NoCarV(button) && NoCarH(button)){
+			if(action.TopPedWaiting){
+				nextState = Transition_To_H;
+			} else if (!NoCarV(button) && NoCarH(button)){
 				nextState = V_Active;
 			}else {
 				nextState = Transition_To_H;
@@ -413,7 +415,7 @@ void TwoLanePed(ButtonStates button){
 				previousDelayExpireAt = HAL_GetTick() + GREEN_DELAY;
 			}
 
-			if(button.LeftPed && previousDelayExpireAt > (HAL_GetTick() + PEDESTRIAN_DELAY)){
+			if(button.LeftPed){ //Press pd at same time error
 				action.LeftPedWaiting = true;
 				action.KeepStateFor = PEDESTRIAN_DELAY;
 				action.StartTimerForNextState = true;
@@ -424,7 +426,9 @@ void TwoLanePed(ButtonStates button){
 			break;
 
 		case H_P_Active:
-			if(!NoCarH(button) && NoCarV(button)){
+			if(action.LeftPedWaiting){
+				nextState = Transition_To_V;
+			} else if (!NoCarH(button) && NoCarV(button)){
 				nextState = H_Active;
 			} else {
 				nextState = Transition_To_V;
@@ -487,6 +491,12 @@ void TwoLanePed(ButtonStates button){
 				lightsActivated = true;
 			}
 
+			if(button.TopPed){
+				action.TopPedWaiting = true;
+			}
+			if(button.LeftPed){
+				action.LeftPedWaiting = true;
+			}
 			if(action.TopPedWaiting){
 				nextState = H_P_Active;
 			}else{
@@ -524,6 +534,12 @@ void TwoLanePed(ButtonStates button){
 				ControlLight(YELLOW_LEFT, ON);
 				ControlLight(YELLOW_RIGHT, ON);
 				lightsActivated = true;
+			}
+			if(button.LeftPed){
+				action.LeftPedWaiting = true;
+			}
+			if(button.TopPed){
+				action.TopPedWaiting = true;
 			}
 
 			if(action.LeftPedWaiting){

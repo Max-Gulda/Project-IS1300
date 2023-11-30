@@ -13,7 +13,5 @@ void hc595_init(SPI_HandleTypeDef *_hspi3);
 
 void hc595_update(uint8_t* dataToSend);
 
-//void hc595_reset(void);
-
 
 #endif /* INC_HC595_H_ */

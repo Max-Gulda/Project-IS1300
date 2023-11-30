@@ -1,6 +1,6 @@
-../Core/Src/freertos.c:109:6:MX_FREERTOS_Init	1
-../Core/Src/freertos.c:169:6:StartDefaultTask	1
-../Core/Src/freertos.c:187:6:BlueLight	3
-../Core/Src/freertos.c:219:6:inputOutput	1
-../Core/Src/freertos.c:245:6:updateState	2
-../Core/Src/freertos.c:265:6:DelayCallback	1
+../Core/Src/freertos.c:116:6:MX_FREERTOS_Init	1
+../Core/Src/freertos.c:180:6:StartDefaultTask	1
+../Core/Src/freertos.c:198:6:BlueLight	3
+../Core/Src/freertos.c:230:6:inputOutput	8
+../Core/Src/freertos.c:278:6:updateState	3
+../Core/Src/freertos.c:308:6:DelayCallback	1
