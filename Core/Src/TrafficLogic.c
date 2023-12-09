@@ -31,13 +31,15 @@ typedef struct{
 */
 
 void initTrafficLogic(CrossingVersion cross){
+	turnOffAllLights();
 	previousDelayExpireAt = UINT16_MAX;
 	lightsActivated = false;
 	delaySent = false;
 	crossing = cross;
-	state = H_Active;
+	state = V_Active;
 	action.StartTimerForNextState = false;
 	action.KeepStateFor = 0;
+	action.AbortTimer = false;
 
 }
 
@@ -64,13 +66,14 @@ void ActivateNextState(){
 	delaySent = false;
 	lightsActivated = false;
 	previousDelayExpireAt = UINT16_MAX;
+	action.SwitchImidiate = false;
 }
 
 
 void OneLane(ButtonStates button){
 	switch(state){
-		case H_Active:
-			nextState = Transition_To_V;
+		case V_Active:
+			nextState = Transition_To_H;
 			if(!lightsActivated){
 				ControlLight(YELLOW_BOTTOM, OFF);
 				ControlLight(YELLOW_TOP, OFF);
@@ -93,8 +96,8 @@ void OneLane(ButtonStates button){
 			}
 
 			break;
-		case V_P_Active:
-			nextState = Transition_To_H;
+		case H_P_Active:
+			nextState = Transition_To_V;
 			if(!lightsActivated){
 				ControlLight(YELLOW_BOTTOM, OFF);
 				ControlLight(YELLOW_TOP, OFF);
@@ -106,14 +109,15 @@ void OneLane(ButtonStates button){
 				ControlLight(RED_BOTTOM, ON);
 				lightsActivated = true;
 			}
+			action.TopPedWaiting = false;
 			if(!delaySent){
 				action.KeepStateFor = WALKING_DELAY;
 				action.StartTimerForNextState = true;
 				delaySent = true;
 			}
 			break;
-		case Transition_To_H:
-			nextState = H_Active;
+		case Transition_To_V:
+			nextState = V_Active;
 			if(!lightsActivated){
 				ControlLight(GREEN_PED_TOP, OFF);
 				ControlLight(RED_PED_TOP, ON);
@@ -131,8 +135,8 @@ void OneLane(ButtonStates button){
 				delaySent = true;
 			}
 			break;
-		case Transition_To_V:
-			nextState = V_P_Active;
+		case Transition_To_H:
+			nextState = H_P_Active;
 			if(!lightsActivated){
 				ControlLight(YELLOW_BOTTOM, ON);
 				ControlLight(YELLOW_TOP, ON);
@@ -154,7 +158,6 @@ void OneLane(ButtonStates button){
 void TwoLane(ButtonStates button){
 	switch(state){
 		case V_Active:
-
 			nextState = Transition_To_H;
 			if(!lightsActivated){
 				ControlLight(GREEN_BOTTOM, ON);
@@ -170,10 +173,10 @@ void TwoLane(ButtonStates button){
 				lightsActivated = true;
 			}
 
+
+
 			if(!NoCarH(button) && NoCarV(button)){
-				action.KeepStateFor = 1;
-				action.StartTimerForNextState = true;
-				delaySent = true;
+				action.SwitchImidiate = true;
 			} else if (!NoCarH(button) && !NoCarV(button) && !delaySent) {
 				action.KeepStateFor = RED_DELAY_MAX;
 				action.StartTimerForNextState = true;
@@ -183,6 +186,8 @@ void TwoLane(ButtonStates button){
 				action.KeepStateFor = GREEN_DELAY;
 				action.StartTimerForNextState = true;
 				delaySent = true;
+			} else if (NoCarH(button) && !NoCarV(button)){
+				action.AbortTimer = true;
 			}
 
 			break;
@@ -204,9 +209,7 @@ void TwoLane(ButtonStates button){
 			}
 
 			if(NoCarH(button) && !NoCarV(button)){
-				action.KeepStateFor = 1;
-				action.StartTimerForNextState = true;
-				delaySent = true;
+				action.SwitchImidiate = true;
 			} else if (!NoCarH(button) && !NoCarV(button) && !delaySent) {
 				action.KeepStateFor = RED_DELAY_MAX;
 				action.StartTimerForNextState = true;
@@ -216,6 +219,8 @@ void TwoLane(ButtonStates button){
 				action.KeepStateFor = GREEN_DELAY;
 				action.StartTimerForNextState = true;
 				delaySent = true;
+			} else if (!NoCarH(button) && NoCarV(button)){
+				action.AbortTimer = true;
 			}
 
 			break;
@@ -297,14 +302,11 @@ void TwoLanePed(ButtonStates button){
 			}
 
 			if(button.LeftPed){
+				action.SwitchImidiate = true;
 				nextState = V_P_Active;
-				action.KeepStateFor = 1;
-				action.StartTimerForNextState = true;
-				previousDelayExpireAt = HAL_GetTick() + 1;
 			} else if(!NoCarH(button) && NoCarV(button)) {
-				action.KeepStateFor = 1;
-				action.StartTimerForNextState = true;
-				previousDelayExpireAt = HAL_GetTick() + 1;
+				action.SwitchImidiate = true;
+				nextState = Transition_To_H;
 			}
 			if (!NoCarH(button) && !NoCarV(button) && previousDelayExpireAt > (HAL_GetTick() + RED_DELAY_MAX)) {
 				action.KeepStateFor = RED_DELAY_MAX;
@@ -314,6 +316,9 @@ void TwoLanePed(ButtonStates button){
 				action.KeepStateFor = GREEN_DELAY;
 				action.StartTimerForNextState = true;
 				previousDelayExpireAt = HAL_GetTick() + GREEN_DELAY;
+			} else if (NoCarH(button) && !NoCarV(button)){
+				action.AbortTimer = true;
+				previousDelayExpireAt = UINT16_MAX;
 			}
 
 			if(button.TopPed){
@@ -392,16 +397,11 @@ void TwoLanePed(ButtonStates button){
 			}
 
 			if(button.TopPed){
+				action.SwitchImidiate = true;
 				nextState = H_P_Active;
-				action.KeepStateFor = 1;
-				action.StartTimerForNextState = true;
-				delaySent = true;
-				previousDelayExpireAt = HAL_GetTick() + 1;
 			} else if(NoCarH(button) && !NoCarV(button)) {
-				action.KeepStateFor = 1;
-				action.StartTimerForNextState = true;
-				delaySent = true;
-				previousDelayExpireAt = HAL_GetTick() + 1;
+				action.SwitchImidiate = true;
+				nextState = Transition_To_V;
 			}
 			if (!NoCarH(button) && !NoCarV(button) && previousDelayExpireAt > (HAL_GetTick() + RED_DELAY_MAX)) {
 				action.KeepStateFor = RED_DELAY_MAX;
@@ -413,9 +413,12 @@ void TwoLanePed(ButtonStates button){
 				action.StartTimerForNextState = true;
 				delaySent = true;
 				previousDelayExpireAt = HAL_GetTick() + GREEN_DELAY;
+			} else if (!NoCarH(button) && NoCarV(button)){
+				action.AbortTimer = true;
+				previousDelayExpireAt = UINT16_MAX;
 			}
 
-			if(button.LeftPed){ //Press pd at same time error
+			if(button.LeftPed){
 				action.LeftPedWaiting = true;
 				action.KeepStateFor = PEDESTRIAN_DELAY;
 				action.StartTimerForNextState = true;
@@ -564,5 +567,9 @@ bool NoCarV(ButtonStates button){
 
 bool NoCarH(ButtonStates button){
 	return !(button.LeftCar | button.RightCar);
+}
+
+TrafficCrossingState getState(){
+	return state;
 }
 

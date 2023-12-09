@@ -55,6 +55,14 @@ ButtonStates tempInputState;
 
 TrafficCrossingAction *TrafficAction;
 
+int blue_blink = 0;
+
+int input_output = 0;
+
+int update_state = 0;
+
+int timer_callback = 0;
+
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -190,10 +198,15 @@ void StartDefaultTask(void *argument)
 
 /* USER CODE BEGIN Header_BlueLight */
 /**
-* @brief Function implementing the toggleBlueLight thread.
-* @param argument: Not used
-* @retval None
-*/
+ * @brief Function implementing the BlueLight thread.
+ *
+ * This function toggles the blue pedestrian lights based on pedestrian waiting
+ * signals. It's checking the status of pedestrian waiting signals and toggling
+ * the blue lights accordingly.
+ *
+ * @param argument Not used in this function.
+ * @retval None
+ */
 /* USER CODE END Header_BlueLight */
 void BlueLight(void *argument)
 {
@@ -205,6 +218,7 @@ void BlueLight(void *argument)
   /* Infinite loop */
   for(;;)
   {
+	  blue_blink = 1;
 	  if(TrafficAction->LeftPedWaiting){
 		  toggleBlueLeft();
 	  } else {
@@ -215,6 +229,7 @@ void BlueLight(void *argument)
 	  } else {
 		  ControlLight(BLUE_PED_TOP, OFF);
 	  }
+	  blue_blink = 0;
 	  vTaskDelayUntil(&xLastWakeTime, xPeriod);
   }
   /* USER CODE END BlueLight */
@@ -222,10 +237,17 @@ void BlueLight(void *argument)
 
 /* USER CODE BEGIN Header_inputOutput */
 /**
-* @brief Function implementing the UpdateInputOutp thread.
-* @param argument: Not used
-* @retval None
-*/
+ * @brief Function implementing the UpdateInputOutput thread.
+ *
+ * This function is responsible for continuously updating the state of inputs
+ * and outputs for the traffic light control system. It's periodically checking
+ *  and updating the status of traffic and pedestrian inputs, and subsequently
+ *  updating the traffic lights accordingly. The function ensures synchronization
+ *  using a semaphore to manage concurrent access to shared resources.
+ *
+ * @param argument Not used in this function.
+ * @retval None
+ */
 /* USER CODE END Header_inputOutput */
 void inputOutput(void *argument)
 {
@@ -238,6 +260,7 @@ void inputOutput(void *argument)
   /* Infinite loop */
   for(;;)
   {
+	  input_output = 1;
 	  if(osSemaphoreAcquire(SemaphoreHandle, 0)){
 		  tempInputState = getInputState();
 		  if(tempInputState.BottomCar){
@@ -258,11 +281,12 @@ void inputOutput(void *argument)
 		  if(tempInputState.TopPed){
 			  inputState.TopPed = true;
 		  }
+
 		  osSemaphoreRelease(SemaphoreHandle);
 	  }
 	  trafficInputs_Update();
-
 	  updateLights();
+	  input_output = 0;
 	  vTaskDelayUntil(&xLastWakeTime, xPeriod);
   }
   /* USER CODE END inputOutput */
@@ -270,24 +294,41 @@ void inputOutput(void *argument)
 
 /* USER CODE BEGIN Header_updateState */
 /**
-* @brief Function implementing the updateStateTask thread.
-* @param argument: Not used
-* @retval None
-*/
+ * @brief Function implementing the updateStateTask thread.
+ *
+ * This function handles the logic for updating the state of the traffic light system.
+ * It processes the current input state, applies traffic logic, and determines if an
+ * immediate state change is required or if a delay is needed before transitioning to
+ * the next state. The function also handles the stopping and starting of timers for
+ * state transitions and uses a semaphore for managing shared resources.
+ *
+ * @param argument Not used in this function.
+ * @retval None
+ */
 /* USER CODE END Header_updateState */
 void updateState(void *argument)
 {
   /* USER CODE BEGIN updateState */
 	TickType_t xLastWakeTime;
-	const TickType_t xPeriod = pdMS_TO_TICKS(200) ; // ms to ticks
+	const TickType_t xPeriod = pdMS_TO_TICKS(50) ; // ms to ticks
 	xLastWakeTime = xTaskGetTickCount();
   /* Infinite loop */
   for(;;)
   {
+	  update_state = 1;
 	  TrafficCrossing(inputState);
-	  if(TrafficAction->StartTimerForNextState){
+	  if(TrafficAction->SwitchImidiate){
+		  osTimerStop(DelayHandle);
+		  ActivateNextState();
+		  //printf("Switching state directly!\r\n");
+	  }else if(TrafficAction->StartTimerForNextState){
+		  //printf("Starting timer for %d ms\r\n", TrafficAction->KeepStateFor);
 		  osTimerStart(DelayHandle, pdMS_TO_TICKS(TrafficAction->KeepStateFor));
 		  TrafficAction->StartTimerForNextState = false;
+	  }
+	  if(TrafficAction->AbortTimer){
+		  osTimerStop(DelayHandle);
+		  TrafficAction->AbortTimer = false;
 	  }
 	  if(osSemaphoreAcquire(SemaphoreHandle, 0)){
 		  inputState.BottomCar = false;
@@ -299,6 +340,10 @@ void updateState(void *argument)
 
 		  osSemaphoreRelease(SemaphoreHandle);
 	  }
+
+
+
+	  update_state=0;
 	  vTaskDelayUntil(&xLastWakeTime, xPeriod);
   }
   /* USER CODE END updateState */
@@ -308,7 +353,9 @@ void updateState(void *argument)
 void DelayCallback(void *argument)
 {
   /* USER CODE BEGIN DelayCallback */
+	timer_callback = 1;
 	ActivateNextState();
+	timer_callback = 0;
   /* USER CODE END DelayCallback */
 }
 

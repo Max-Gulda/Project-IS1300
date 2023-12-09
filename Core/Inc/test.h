@@ -25,5 +25,9 @@ void testFasterLight();
 void testTrafficLogicOneLane();
 void testTrafficLogicTwoLanePed();
 void simulateTestScenario(ButtonStates testInput);
+void printState(void);
+bool testForError(int16_t delay, bool startDelay, bool topPed, bool leftPed, bool abortTimer, bool switchImidiate, TrafficCrossingState testState);
+void testStateMachine(void);
+void programError(void);
 
 #endif /* INC_TEST_H_ */

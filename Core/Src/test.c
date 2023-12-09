@@ -6,7 +6,7 @@
  */
 #include "test.h"
 
-#define TEST_SPEED 200
+#define TEST_SPEED 100
 
 
 
@@ -16,19 +16,22 @@
 TrafficCrossingAction *TrafficActionTest;
 
 void Test_Program(){
+	for(int i = 0; i < 10; i++) printf("\n\r");
 	//initTrafficLogic(PedOneLane);
 	//initTrafficLogic(NoPedTwoLane);
+	printf("Starting testing! \n \r");
 	initTrafficLogic(PedTwoLane);
 	updateLights();
 	TrafficActionTest = getTrafficAction();
-	testTrafficLogicTwoLanePed();
+	testStateMachine();
+	//testTrafficLogicTwoLanePed();
 	while(1){
 		turnOnAllLights();
 		updateLights();
 		HAL_Delay(50);
 		turnOffAllLights();
 		updateLights();
-		HAL_Delay(50);
+		HAL_Delay(1000);
 		//testTrafficLogicOneLane();
 		//testFasterLight();
 		//testLightLogic();
@@ -36,6 +39,290 @@ void Test_Program(){
 		//testInputs();
 		//testLights();
 		//testHC595();
+	}
+}
+
+void printState(void) {
+    TrafficCrossingState printState = getState();
+    printf("-------------------------State Info START-------------------------\n\r");
+    char tempStr[30] = {0};
+    switch (printState) {
+        case H_Active:
+            strcpy(tempStr, "Horizontal Active");
+            break;
+        case V_Active:
+            strcpy(tempStr, "Vertical Active");
+            break;
+        case V_P_Active:
+            strcpy(tempStr, "Vertical Pedestrian Active");
+            break;
+        case H_P_Active:
+            strcpy(tempStr, "Horizontal Pedestrian Active");
+            break;
+        case Transition_To_H:
+            strcpy(tempStr, "Transition to Horizontal Active");
+            break;
+        case Transition_To_V:
+            strcpy(tempStr, "Transition to Vertical Active");
+            break;
+        default:
+            strcpy(tempStr, "Unknown State");
+    }
+    printf("State = %s \n \r", tempStr);
+    if(TrafficActionTest->SwitchImidiate){
+		printf("State should switch immediately. \n \r");
+		TrafficActionTest->SwitchImidiate = false;
+	}else if(TrafficActionTest->AbortTimer){
+		TrafficActionTest->AbortTimer = false;
+		printf("Timer should be aborted! \n \r");
+	}else if(TrafficActionTest->StartTimerForNextState){
+    	printf("State should switch in %d ms \n \r", TrafficActionTest->KeepStateFor);
+    	TrafficActionTest->StartTimerForNextState = false;
+    }
+
+
+
+    if(TrafficActionTest->LeftPedWaiting){
+    	printf("Left pedestrian button was pressed. \n \r");
+    }
+    if(TrafficActionTest->TopPedWaiting){
+    	printf("Top pedestrian button was pressed. \n \r");
+    }
+
+    printf("--------------------------State Info END--------------------------\n\r\n\r");
+
+}
+
+
+bool testForError(int16_t delay, bool startDelay, bool topPed, bool leftPed, bool abortTimer, bool switchImidiate, TrafficCrossingState testState){
+	if(testState != getState()){
+		printf("Error code: 1 \n \r");
+		return false;
+	}
+
+	if(topPed != TrafficActionTest->TopPedWaiting){
+		printf("Error code: 2 \n \r");
+		return false;
+	}
+
+	if(leftPed != TrafficActionTest->LeftPedWaiting){
+		printf("Error code: 3 \n \r");
+		return false;
+	}
+
+	if(switchImidiate && TrafficActionTest->SwitchImidiate){
+		return true;
+	}
+
+	if(abortTimer && TrafficActionTest->AbortTimer){
+		return true;
+	}
+
+	if(startDelay){
+		if(delay != TrafficActionTest->KeepStateFor){
+			printf("Error code: 4 \n \r");
+			return false;
+		}
+		if(!TrafficActionTest->KeepStateFor){
+			printf("Error code: 5 \n \r");
+			return false;
+		}
+	}
+
+	return true;
+}
+
+
+void testStateMachine(void){
+	ButtonStates testScenarios[10] = {
+	    {false, false, 	false, 	false, 	false, 	false},
+	    {false, true, 	false, 	false, 	false, 	false},
+	    {false, true, 	true, 	false, 	false, 	false},
+	    {false, false, 	false, 	true, 	false, 	false},
+	    {false, false, 	false, 	false, 	true, 	false},
+	    {false, false, 	false, 	false, 	false, 	true },
+		{true, 	true, 	true, 	true, 	true, 	true },
+		{true, 	true, 	true, 	true, 	false, 	false}
+	};
+
+	TrafficCrossing(testScenarios[0]);
+	printf("Expected state is Vertical Active \n \r");
+	printf("State should switch in %d ms\n\r", GREEN_DELAY);
+	printState();
+	if(!testForError(GREEN_DELAY,true,false,false,false,false,V_Active)){
+		programError();
+	}
+
+	HAL_Delay(TEST_SPEED);
+
+	TrafficCrossing(testScenarios[1]);
+	printf("Expected state is Vertical Active \n \r");
+	printf("Previous timer should be aborted \n \r");
+	printState();
+	if(!testForError(0,false,false,false,true,false,V_Active)){
+		programError();
+	}
+
+	HAL_Delay(TEST_SPEED);
+
+	TrafficCrossing(testScenarios[0]);
+	printf("Expected state is Vertical Active \n \r");
+	printf("State should switch in %d ms\n\r", GREEN_DELAY);
+	printState();
+
+	if(!testForError(GREEN_DELAY,true,false,false,false,false,V_Active)){
+		programError();
+	}
+
+	HAL_Delay(TEST_SPEED);
+
+	printf("\n\r**** Activating next state **** \n\n\r");
+	ActivateNextState();
+
+	HAL_Delay(TEST_SPEED);
+
+	TrafficCrossing(testScenarios[0]);
+	printf("Expected state is Transition to Horizontal \n \r");
+	printf("State should switch in %d ms\n\r", YELLOW_DELAY);
+	printState();
+
+	if(!testForError(YELLOW_DELAY,true,false,false,false,false,Transition_To_H)){
+		programError();
+	}
+
+	HAL_Delay(TEST_SPEED);
+
+	TrafficCrossing(testScenarios[5]);
+	printf("Expected state is Transition to Horizontal \n \r");
+	printf("State should switch in %d ms\n\r", YELLOW_DELAY);
+	printState();
+
+	if(!testForError(YELLOW_DELAY,false,true,false,false,false,Transition_To_H)){
+		programError();
+	}
+
+	HAL_Delay(TEST_SPEED);
+
+	printf("\n\r**** Activating next state **** \n\n\r");
+	ActivateNextState();
+
+	HAL_Delay(TEST_SPEED);
+
+	TrafficCrossing(testScenarios[0]);
+	printf("Expected state is Horizontal Pedestrian Active \n\r");
+	printf("State should switch in %d ms\n\r", WALKING_DELAY);
+	printState();
+
+	if(!testForError(WALKING_DELAY,false,false,false,false,false,H_P_Active)){
+		programError();
+	}
+
+	HAL_Delay(TEST_SPEED);
+
+	printf("\n\r**** Activating next state **** \n\n\r");
+	ActivateNextState();
+
+	HAL_Delay(TEST_SPEED);
+
+	TrafficCrossing(testScenarios[0]);
+	printf("Expected state is Transition to Vertical\n\r");
+	printf("Expected delay is %d ms\n\r", YELLOW_DELAY);
+	printState();
+
+	if(!testForError(YELLOW_DELAY,false,false,false,false,false,Transition_To_V)){
+		programError();
+	}
+
+	HAL_Delay(TEST_SPEED);
+
+	printf("\n\r**** Activating next state **** \n\n\r");
+	ActivateNextState();
+
+	HAL_Delay(TEST_SPEED);
+
+
+	TrafficCrossing(testScenarios[6]);
+	printf("Expected state is Vertical active \n\r");
+	printf("State should switch immediately\n\r");
+	printState();
+	if(!testForError(0,false,true,false,false,true,V_Active)){
+		programError();
+	}
+
+	HAL_Delay(TEST_SPEED);
+
+	printf("\n\r**** Activating next state **** \n\n\r");
+	ActivateNextState();
+
+	HAL_Delay(TEST_SPEED);
+
+	TrafficCrossing(testScenarios[6]);
+	printf("Expected state is Vertical pedestrian active \n \r");
+	printf("Expected delay is %d ms \n\r", WALKING_DELAY);
+	printf("Top pedestrian is waiting\n\r");
+	printState();
+	if(!testForError(WALKING_DELAY,false,true,false,false,false,V_P_Active)){
+		programError();
+	}
+
+	HAL_Delay(TEST_SPEED);
+
+	printf("\n\r**** Activating next state **** \n\n\r");
+	ActivateNextState();
+	TrafficCrossing(testScenarios[7]);
+	printf("Expected state is transition to horizontal\n\r");
+	printf("Expected delay is %d ms\n\r", YELLOW_DELAY);
+	printf("Top pedestrian is waiting \n \r");
+	printState();
+	if(!testForError(YELLOW_DELAY,false,true,false,false,false,Transition_To_H)){
+		programError();
+	}
+
+	HAL_Delay(TEST_SPEED);
+
+	printf("\n\r**** Activating next state **** \n\n\r");
+	ActivateNextState();
+	TrafficCrossing(testScenarios[7]);
+	printf("Expected state is Horizontal Pedestrian active\n\r");
+	printf("Expected delay is %d ms\n\r", WALKING_DELAY);
+	printState();
+	if(!testForError(WALKING_DELAY,false,false,false,false,false,H_P_Active)){
+		programError();
+	}
+
+	HAL_Delay(TEST_SPEED);
+
+
+	printf("\n\r**** Activating next state **** \n\n\r");
+	ActivateNextState();
+	TrafficCrossing(testScenarios[7]);
+	printf("Expected state is transition to vertical\n\r");
+	printf("Expected delay is %d ms\n\r", YELLOW_DELAY);
+	printState();
+
+	if(!testForError(YELLOW_DELAY,false,false,false,false,false,Transition_To_V)){
+		programError();
+	}
+
+	HAL_Delay(TEST_SPEED);
+
+	printf("\n\r**** Activating next state **** \n\n\r");
+	ActivateNextState();
+	TrafficCrossing(testScenarios[7]);
+	printf("Expected state is vertical active\n\r");
+	printf("Expected delay is %d ms\n\r", RED_DELAY_MAX);
+	printState();
+	if(!testForError(RED_DELAY_MAX,false,false,false,false,false,V_Active)){
+		programError();
+	}
+
+
+}
+
+void programError(void){
+	while(1){
+		turnOnAllLights();
+		updateLights();
 	}
 }
 

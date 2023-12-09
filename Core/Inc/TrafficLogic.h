@@ -58,6 +58,8 @@ typedef struct{
 	bool TopPedWaiting;
 	bool LeftPedWaiting;
 	bool StartTimerForNextState;
+	bool SwitchImidiate;
+	bool AbortTimer;
 	uint16_t KeepStateFor;
 }TrafficCrossingAction;
 
